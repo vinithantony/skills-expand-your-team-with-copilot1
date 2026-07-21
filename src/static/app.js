@@ -34,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
     technology: { label: "Technology", color: "#e8eaf6", textColor: "#3949ab" },
   };
 
+  // School name used in share messages
+  const SCHOOL_NAME = "Mergington High School";
+
   // State for activities and filters
   let allActivities = {};
   let currentFilter = "all";
@@ -604,8 +607,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const whatsappLink = activityCard.querySelector(".whatsapp-share");
     const twitterLink = activityCard.querySelector(".twitter-share");
 
-    const shareText = `Check out "${name}" at Mergington High School! ${details.description} Schedule: ${formattedSchedule}`;
-    const shareUrl = window.location.href;
+    const shareText = `Check out "${name}" at ${SCHOOL_NAME}! ${details.description} Schedule: ${formattedSchedule}`;
+    const shareUrl = window.location.origin + window.location.pathname;
 
     whatsappLink.href = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
     twitterLink.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
@@ -614,7 +617,9 @@ document.addEventListener("DOMContentLoaded", () => {
       event.stopPropagation();
       // Use Web Share API on supported browsers (usually mobile)
       if (navigator.share) {
-        navigator.share({ title: name, text: shareText, url: shareUrl }).catch(() => {});
+        navigator.share({ title: name, text: shareText, url: shareUrl }).catch((err) => {
+          console.error("Share failed:", err);
+        });
         return;
       }
       // Otherwise toggle the dropdown
@@ -629,6 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     copyLinkBtn.addEventListener("click", () => {
       navigator.clipboard.writeText(shareUrl).then(() => {
         copyLinkBtn.textContent = "✅ Copied!";
+        showMessage("Link copied to clipboard!", "success");
         setTimeout(() => { copyLinkBtn.textContent = "🔗 Copy Link"; }, 2000);
       }).catch(() => {
         showMessage("Could not copy link. Please copy it manually.", "error");
