@@ -607,7 +607,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const whatsappLink = activityCard.querySelector(".whatsapp-share");
     const twitterLink = activityCard.querySelector(".twitter-share");
 
-    const shareText = `Check out "${name}" at ${SCHOOL_NAME}! ${details.description} Schedule: ${formattedSchedule}`;
+    // Truncate description to keep share text within platform limits (e.g. Twitter 280 chars)
+    const MAX_DESC_LENGTH = 100;
+    const shortDesc = details.description.length > MAX_DESC_LENGTH
+      ? details.description.slice(0, MAX_DESC_LENGTH).trimEnd() + "…"
+      : details.description;
+    const shareText = `Check out "${name}" at ${SCHOOL_NAME}! ${shortDesc} Schedule: ${formattedSchedule}`;
     const shareUrl = window.location.origin + window.location.pathname;
 
     whatsappLink.href = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
@@ -637,7 +642,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("Link copied to clipboard!", "success");
         setTimeout(() => { copyLinkBtn.textContent = "🔗 Copy Link"; }, 2000);
       }).catch(() => {
-        showMessage("Could not copy link. Please copy it manually.", "error");
+        showMessage(`Could not copy automatically. Please copy: ${shareUrl}`, "error");
       });
       shareDropdown.classList.add("hidden");
     });
