@@ -568,6 +568,16 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `
         }
+        <div class="share-container">
+          <button class="share-button" title="Share this activity" aria-label="Share ${name}">
+            📤 Share
+          </button>
+          <div class="share-dropdown hidden">
+            <button class="share-option copy-link" data-activity="${name}">🔗 Copy Link</button>
+            <a class="share-option whatsapp-share" href="#" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+            <a class="share-option twitter-share" href="#" target="_blank" rel="noopener noreferrer">𝕏 Twitter / X</a>
+          </div>
+        </div>
       </div>
     `;
 
@@ -586,6 +596,45 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Set up share button
+    const shareButton = activityCard.querySelector(".share-button");
+    const shareDropdown = activityCard.querySelector(".share-dropdown");
+    const copyLinkBtn = activityCard.querySelector(".copy-link");
+    const whatsappLink = activityCard.querySelector(".whatsapp-share");
+    const twitterLink = activityCard.querySelector(".twitter-share");
+
+    const shareText = `Check out "${name}" at Mergington High School! ${details.description} Schedule: ${formattedSchedule}`;
+    const shareUrl = window.location.href;
+
+    whatsappLink.href = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+    twitterLink.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+
+    shareButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      // Use Web Share API on supported browsers (usually mobile)
+      if (navigator.share) {
+        navigator.share({ title: name, text: shareText, url: shareUrl }).catch(() => {});
+        return;
+      }
+      // Otherwise toggle the dropdown
+      const isHidden = shareDropdown.classList.contains("hidden");
+      // Close all other open dropdowns first
+      document.querySelectorAll(".share-dropdown:not(.hidden)").forEach((d) => d.classList.add("hidden"));
+      if (isHidden) {
+        shareDropdown.classList.remove("hidden");
+      }
+    });
+
+    copyLinkBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        copyLinkBtn.textContent = "✅ Copied!";
+        setTimeout(() => { copyLinkBtn.textContent = "🔗 Copy Link"; }, 2000);
+      }).catch(() => {
+        showMessage("Could not copy link. Please copy it manually.", "error");
+      });
+      shareDropdown.classList.add("hidden");
+    });
 
     activitiesList.appendChild(activityCard);
   }
@@ -671,6 +720,10 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("click", (event) => {
     if (event.target === registrationModal) {
       closeRegistrationModalHandler();
+    }
+    // Close any open share dropdowns when clicking outside
+    if (!event.target.closest(".share-container")) {
+      document.querySelectorAll(".share-dropdown:not(.hidden)").forEach((d) => d.classList.add("hidden"));
     }
   });
 
